@@ -1,5 +1,9 @@
 import cv2
 from ultralytics import YOLO
+from fastai.vision.all import *
+import pandas as pd
+
+
 
 cap = cv2.VideoCapture("video.mp4")
 model = YOLO("yolov8n.pt")
@@ -26,49 +30,15 @@ while True:
                     aspect_ratio_id[id] = aspect_ratio
 
 
+learner = load_learner("Model3")
+final_predictions = {}
 for key in car_id:
-    print("id === ", key)
-    cv2.imshow("",car_id[key])
-    cv2.waitKey(0)
+    prediction, _, _ = learner.predict(car_id[key])
+    final_predictions[prediction] = final_predictions.get(prediction,0) + 1
+
 
 cap.release()
 cv2.destroyAllWindows()
 
-"""from ultralytics import YOLO
-import cv2
-
-model = YOLO('yolov8n.pt')  # load an official detection model
-
-cap = cv2.VideoCapture("video.mp4")
-
-while cap.isOpened():
-    # Read the frame
-    ret, frame = cap.read()
-    # Check if the end of the video has been reached
-    if not ret:
-        break
-
-    results = model.track(source=frame, show=True,save = True, tracker="bytetrack.yaml")
-
-cap.release()
-cv2.destroyAllWindows()"""
-
-"""cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 2)
-        cv2.putText(
-            frame,
-            f"Id {id}",
-            (box[0], box[1]),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            1,
-            (0, 0, 255),
-            2,
-        )
-        cv2.putText(
-            frame,
-            f"name {names[int(name)]}",
-            (box[0], box[3] + 25),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            1,
-            (0, 0, 255),
-            2,
-        )"""
+df = pd.DataFrame([final_predictions])
+df.to_csv("predictions.csv")
